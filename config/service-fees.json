@@ -6,11 +6,31 @@
         "minFee": 0.5,
         "newUserFeeEnabled": true,
         "bands": [
-          { "minPriceInclusive": 0.0, "maxPriceExclusive": 5.0, "feePercent": 20.0 },
-          { "minPriceInclusive": 5.0, "maxPriceExclusive": 8.0, "feePercent": 18.0 },
-          { "minPriceInclusive": 8.0, "maxPriceExclusive": 12.0, "feePercent": 16.0 },
-          { "minPriceInclusive": 12.0, "maxPriceExclusive": 20.0, "feePercent": 12.0 },
-          { "minPriceInclusive": 20.0, "maxPriceExclusive": null, "feePercent": 12.0 }
+          {
+            "minPriceInclusive": 0,
+            "maxPriceExclusive": 5,
+            "feePercent": 20
+          },
+          {
+            "minPriceInclusive": 5,
+            "maxPriceExclusive": 8,
+            "feePercent": 18
+          },
+          {
+            "minPriceInclusive": 8,
+            "maxPriceExclusive": 12,
+            "feePercent": 16
+          },
+          {
+            "minPriceInclusive": 12,
+            "maxPriceExclusive": 20,
+            "feePercent": 12
+          },
+          {
+            "minPriceInclusive": 20,
+            "maxPriceExclusive": null,
+            "feePercent": 12
+          }
         ]
       }
     },
@@ -21,39 +41,78 @@
     },
     "rules": [
       {
-        "scope": { "country": "IN" },
+        "scope": {
+          "country": "IN"
+        },
         "override": {
           "relative": {
             "minFee": 0.75,
+            "newUserFeeEnabled": true,
             "bands": [
-              { "minPriceInclusive": 0.0, "maxPriceExclusive": 5.0, "feePercent": 22.0 },
-              { "minPriceInclusive": 5.0, "maxPriceExclusive": 8.0, "feePercent": 19.0 },
-              { "minPriceInclusive": 8.0, "maxPriceExclusive": 12.0, "feePercent": 17.0 },
-              { "minPriceInclusive": 12.0, "maxPriceExclusive": 20.0, "feePercent": 13.0 },
-              { "minPriceInclusive": 20.0, "maxPriceExclusive": null, "feePercent": 12.0 }
+              {
+                "minPriceInclusive": 0,
+                "maxPriceExclusive": 5,
+                "feePercent": 22
+              },
+              {
+                "minPriceInclusive": 5,
+                "maxPriceExclusive": 8,
+                "feePercent": 19
+              },
+              {
+                "minPriceInclusive": 8,
+                "maxPriceExclusive": 12,
+                "feePercent": 17
+              },
+              {
+                "minPriceInclusive": 12,
+                "maxPriceExclusive": 20,
+                "feePercent": 13
+              },
+              {
+                "minPriceInclusive": 20,
+                "maxPriceExclusive": null,
+                "feePercent": 12
+              }
             ]
           }
         }
       },
       {
-        "scope": { "category": "Credit" },
+        "scope": {
+          "category": "Credit"
+        },
         "override": {
           "relative": {
             "minFee": 0.75,
             "bands": [
-              { "minPriceInclusive": 12.0, "maxPriceExclusive": 20.0, "feePercent": 13.0 },
-              { "minPriceInclusive": 20.0, "maxPriceExclusive": null, "feePercent": 12.0 }
+              {
+                "minPriceInclusive": 12,
+                "maxPriceExclusive": 20,
+                "feePercent": 13
+              },
+              {
+                "minPriceInclusive": 20,
+                "maxPriceExclusive": null,
+                "feePercent": 12
+              }
             ]
           }
         }
       },
       {
-        "scope": { "country": "IT" },
+        "scope": {
+          "country": "IT"
+        },
         "override": {
           "relative": {
             "minFee": 0.85,
             "bands": [
-              { "minPriceInclusive": 0.0, "maxPriceExclusive": 5.0, "feePercent": 22.0 }
+              {
+                "minPriceInclusive": 0,
+                "maxPriceExclusive": 5,
+                "feePercent": 22
+              }
             ]
           }
         }
@@ -61,25 +120,38 @@
       {
         "scope": {
           "country": "IN",
-          "segment": "new_user",
           "category": "bundle",
+          "segment": "new_user",
           "app": "web,android"
         },
         "override": {
           "relative": {
-            "newUserFeeEnabled": true,
-            "minFee": 0.5
+            "minFee": 0.5,
+            "newUserFeeEnabled": true
           }
         }
       },
       {
-        "scope": { "country": "IN", "category": "Credit" },
+        "scope": {
+          "country": "IN",
+          "category": "Credit"
+        },
         "override": {
           "fixed": {
             "productFee": {
               "2|4|8": {
-                "MX": { "Default": { "Amount": 2, "Currency": "USD" } },
-                "NG": { "Default": { "Amount": 2, "Currency": "USD" } }
+                "MX": {
+                  "Default": {
+                    "Amount": 2,
+                    "Currency": "USD"
+                  }
+                },
+                "NG": {
+                  "Default": {
+                    "Amount": 2,
+                    "Currency": "USD"
+                  }
+                }
               }
             }
           }
