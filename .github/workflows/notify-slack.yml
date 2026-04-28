@@ -1,0 +1,45 @@
+name: Notify Slack on fee config change
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "config/service-fees.json"
+
+jobs:
+  notify:
+    if: ${{ vars.SLACK_NOTIFICATIONS_ENABLED != 'false' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # so we can see the previous commit
+
+      - name: Build payload
+        id: payload
+        run: |
+          set -euo pipefail
+          AUTHOR="${{ github.event.head_commit.author.name }}"
+          MESSAGE="${{ github.event.head_commit.message }}"
+          # Strip everything after the first newline so the Slack message stays one line.
+          MESSAGE_ONELINE="${MESSAGE%%$'\n'*}"
+          REPO="${{ github.repository }}"
+          SHA="${{ github.sha }}"
+          SHORT_SHA="${SHA:0:7}"
+          COMMIT_URL="https://github.com/${REPO}/commit/${SHA}"
+          {
+            echo "text=:money_with_wings: *Service fees updated* — ${MESSAGE_ONELINE} <${COMMIT_URL}|${SHORT_SHA}> by ${AUTHOR}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Post to Slack
+        if: ${{ env.SLACK_WEBHOOK_URL != '' }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          set -euo pipefail
+          # Build a JSON-safe payload (jq escapes `text` properly so quotes/backticks survive).
+          jq -nc --arg t "${{ steps.payload.outputs.text }}" '{text: $t}' \
+            | curl -sS -X POST -H 'Content-Type: application/json' --data-binary @- "$SLACK_WEBHOOK_URL"

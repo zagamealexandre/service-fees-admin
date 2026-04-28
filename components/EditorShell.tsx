@@ -11,6 +11,9 @@ import { SavePRDialog } from "./SavePRDialog";
 import { PendingPRsBanner } from "./PendingPRsBanner";
 import { HistoryPanel } from "./HistoryPanel";
 import { DocsPanel } from "./DocsPanel";
+import { CalculatorPanel } from "./CalculatorPanel";
+import { TestCasesPanel } from "./TestCasesPanel";
+import { BranchPicker } from "./BranchPicker";
 import { hasBlockingErrors, validateConfig } from "@/lib/validate";
 
 type Draft = { config: ServiceFeeConfig; baseSha: string; savedAt: number };
@@ -31,11 +34,15 @@ export function EditorShell({
   baseSha,
   configHtmlUrl,
   user,
+  branches,
+  activeBranch,
 }: {
   initialConfig: ServiceFeeConfig;
   baseSha: string;
   configHtmlUrl: string;
   user: { login: string; name: string | null; avatarUrl: string };
+  branches: string[];
+  activeBranch: string;
 }) {
   const [config, setConfig] = useState<ServiceFeeConfig>(initialConfig);
   // The last "saved" baseline. Starts as what was loaded from main; after a PR is opened
@@ -50,7 +57,8 @@ export function EditorShell({
   const [defaultsLocked, setDefaultsLocked] = useState(true);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
 
-  const storageKey = `sf_draft:${user.login}`;
+  // Autosave key includes the active branch so drafts on `staging` don't bleed into `main`.
+  const storageKey = `sf_draft:${user.login}:${activeBranch}`;
 
   const issues = useMemo(() => validateConfig(config), [config]);
   const blocking = hasBlockingErrors(issues);
@@ -117,8 +125,9 @@ export function EditorShell({
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8 pb-32">
-      <header className="mb-6 flex items-center gap-3">
+      <header className="mb-6 flex flex-wrap items-center gap-3">
         <h1 className="text-xl font-semibold text-ink">Service fees</h1>
+        <BranchPicker branches={branches} active={activeBranch} />
         <a
           href={configHtmlUrl}
           target="_blank"
@@ -235,6 +244,7 @@ export function EditorShell({
           </fieldset>
         </div>
         <RulesList config={config} onChange={setConfig} />
+        <TestCasesPanel config={config} />
         <RawJsonPanel config={config} />
         <HistoryPanel configHtmlUrl={configHtmlUrl} />
 
@@ -261,7 +271,8 @@ export function EditorShell({
         )}
         </div>
 
-        <aside className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-7rem)] lg:self-start lg:overflow-y-auto lg:pr-1">
+        <aside className="space-y-3 lg:sticky lg:top-6 lg:max-h-[calc(100vh-7rem)] lg:self-start lg:overflow-y-auto lg:pr-1">
+          <CalculatorPanel config={config} />
           <DocsPanel />
         </aside>
       </div>

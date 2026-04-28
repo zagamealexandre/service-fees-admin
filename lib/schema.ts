@@ -41,6 +41,10 @@ export const OverrideSchema = z.object({
 export const RuleSchema = z.object({
   scope: ScopeSchema,
   override: OverrideSchema,
+  /** When false, the rule is ignored by the engine. Default: enabled (true). */
+  enabled: z.boolean().optional(),
+  /** Free-form rationale shown in the editor; ignored by the engine. */
+  note: z.string().optional(),
 });
 
 export const ServiceFeeConfigSchema = z.object({

@@ -1,5 +1,7 @@
 // Thin GitHub REST helpers. Token is the user's OAuth access token (repo scope).
 
+import { cookies } from "next/headers";
+
 const GH = "https://api.github.com";
 
 export type RepoSlug = { owner: string; repo: string };
@@ -13,11 +15,31 @@ export function repoFromEnv(): RepoSlug {
   return { owner, repo };
 }
 
+/** Branches configured as valid environments. The first one is the default. */
+export function allowedBranches(): string[] {
+  const raw = process.env.GITHUB_BRANCHES || process.env.GITHUB_BASE_BRANCH || "main";
+  const list = raw.split(",").map((s) => s.trim()).filter(Boolean);
+  return list.length ? list : ["main"];
+}
+
+/**
+ * Active base branch for this request. Reads the `sf_branch` cookie (set by the
+ * branch picker) and validates it against the allowed list — so a stale or hostile
+ * cookie can't redirect commits to an arbitrary branch.
+ */
 export function baseBranch(): string {
-  return process.env.GITHUB_BASE_BRANCH || "main";
+  const allowed = allowedBranches();
+  try {
+    const fromCookie = cookies().get("sf_branch")?.value;
+    if (fromCookie && allowed.includes(fromCookie)) return fromCookie;
+  } catch {
+    // cookies() throws outside a request context (e.g. in CI). Fall back to default.
+  }
+  return allowed[0];
 }
 
 export const CONFIG_PATH = "config/service-fees.json";
+export const TESTS_PATH = "config/service-fees.test.json";
 
 async function gh(token: string, path: string, init: RequestInit = {}): Promise<Response> {
   const res = await fetch(`${GH}${path}`, {
@@ -39,13 +61,30 @@ export async function readConfigFile(token: string): Promise<{
   sha: string;
   htmlUrl: string;
 }> {
+  return readRepoJson(token, CONFIG_PATH);
+}
+
+export async function readTestsFile(token: string): Promise<{
+  json: unknown;
+  sha: string;
+  htmlUrl: string;
+} | null> {
+  try {
+    return await readRepoJson(token, TESTS_PATH);
+  } catch (e) {
+    if (e instanceof Error && e.message.startsWith("NOT_FOUND")) return null;
+    throw e;
+  }
+}
+
+async function readRepoJson(token: string, repoPath: string) {
   const { owner, repo } = repoFromEnv();
   const res = await gh(
     token,
-    `/repos/${owner}/${repo}/contents/${CONFIG_PATH}?ref=${encodeURIComponent(baseBranch())}`
+    `/repos/${owner}/${repo}/contents/${repoPath}?ref=${encodeURIComponent(baseBranch())}`
   );
   if (res.status === 404) {
-    throw new Error(`${CONFIG_PATH} not found on ${baseBranch()} — commit a starter file first.`);
+    throw new Error(`NOT_FOUND: ${repoPath} on ${baseBranch()}.`);
   }
   if (!res.ok) throw new Error(`GitHub read failed (${res.status}): ${await res.text()}`);
   const data = (await res.json()) as { content: string; sha: string; html_url: string; encoding: string };

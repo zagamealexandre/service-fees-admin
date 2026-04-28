@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "name": "Default: $4 product → 20% × 4 = $0.80",
+      "transaction": { "price": 4 },
+      "expectedFee": 0.8
+    },
+    {
+      "name": "Default: $2 product hits minFee floor (0.50)",
+      "transaction": { "price": 2 },
+      "expectedFee": 0.5
+    },
+    {
+      "name": "Default: $25 → 12% × 25 = $3.00 (open-ended band)",
+      "transaction": { "price": 25 },
+      "expectedFee": 3.0
+    },
+    {
+      "name": "IN: $4 → 22% × 4 = $0.88",
+      "transaction": { "price": 4, "country": "IN" },
+      "expectedFee": 0.88
+    },
+    {
+      "name": "IN: $2 hits IN minFee floor (0.75)",
+      "transaction": { "price": 2, "country": "IN" },
+      "expectedFee": 0.75
+    },
+    {
+      "name": "IN: $10 → 17% × 10 = $1.70",
+      "transaction": { "price": 10, "country": "IN" },
+      "expectedFee": 1.7
+    },
+    {
+      "name": "AF: $3 → 14% × 3 = $0.42, AF minFee floor 0.99 wins",
+      "transaction": { "price": 3, "country": "AF" },
+      "expectedFee": 0.99
+    },
+    {
+      "name": "AF new user: newUserFeeEnabled=false → no fee",
+      "transaction": { "price": 4, "country": "AF", "isNewUser": true },
+      "expectedFee": 0
+    },
+    {
+      "name": "Default new user: newUserFeeEnabled=true → fee still applies",
+      "transaction": { "price": 4, "isNewUser": true },
+      "expectedFee": 0.8
+    }
+  ]
+}

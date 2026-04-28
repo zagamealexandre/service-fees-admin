@@ -1,0 +1,30 @@
+name: Service fees — golden tests
+
+on:
+  pull_request:
+    paths:
+      - "config/service-fees.json"
+      - "config/service-fees.test.json"
+      - "lib/rules.ts"
+      - "lib/test-runner.ts"
+      - "lib/schema.ts"
+      - "scripts/test-fees.ts"
+      - ".github/workflows/test-fees.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "config/service-fees.json"
+      - "config/service-fees.test.json"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci --no-audit --no-fund
+      - run: npm run test:fees

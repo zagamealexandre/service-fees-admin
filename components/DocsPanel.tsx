@@ -123,7 +123,32 @@ export function DocsPanel() {
         </p>
       </div>
 
-      <Section title="What is this file?" defaultOpen>
+      <Section title="At a glance" defaultOpen>
+        <ul className="list-disc space-y-1 pl-5 text-xs">
+          <li>
+            <strong>Calculator</strong> in the sidebar shows the fee for any transaction in real
+            time as you edit.
+          </li>
+          <li>
+            <strong>Defaults are locked</strong> behind a confirmation modal — they affect every
+            transaction, so editing them is intentional.
+          </li>
+          <li>
+            <strong>Override rules</strong> can be toggled on/off, annotated with a note, filtered
+            via the search box, and reordered with ↑↓.
+          </li>
+          <li>
+            <strong>Golden tests</strong> at the bottom flip to red the moment your edits would
+            break a known-good scenario; CI runs the same cases on every PR.
+          </li>
+          <li>
+            <strong>Save as PR…</strong> shows a Semantic / Text diff / Full JSON preview before
+            you commit.
+          </li>
+        </ul>
+      </Section>
+
+      <Section title="What is this file?">
         <p>
           <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">config/service-fees.json</code> controls
           how Rebtel calculates the <strong>service fee</strong> added on top of every product price.
@@ -259,6 +284,94 @@ export function DocsPanel() {
           <li>Empty override on a rule is a warning — the rule does nothing.</li>
           <li>Two rules with the exact same scope is a warning — the later one wins.</li>
         </ul>
+      </Section>
+
+      <Section title="Live calculator (sidebar)">
+        <p>
+          The card above the docs runs the same matching logic the backend uses, against your
+          <em> in-memory edits</em>. Set price + scope + new-user, see the fee and the
+          explanation update live. Use it to sanity-check a band tweak before saving.
+        </p>
+        <p className="text-xs text-subtle">
+          Source chip: <code>band</code> = priced from a band, <code>min-floor</code> = minFee
+          floor kicked in, <code>fixed</code> = a productFee entry won, <code>new-user-waived</code>{" "}
+          = newUserFeeEnabled false short-circuited the calc.
+        </p>
+      </Section>
+
+      <Section title="Toggling rules on/off">
+        <p>
+          Each rule has an On/Off switch in its header. Off rules are kept in the file with{" "}
+          <code>enabled: false</code> and visually struck through, but ignored by the engine and
+          calculator. Useful for temporary kill-switches or A/B experiments without losing the
+          configuration.
+        </p>
+      </Section>
+
+      <Section title="Notes on rules">
+        <p>
+          Each rule has an optional <code>note</code> field (visible when you Edit the rule). The
+          backend ignores it; it&apos;s there so the next person editing knows <em>why</em> the
+          rule exists.
+        </p>
+        <p className="text-xs text-subtle">
+          Good notes: &ldquo;Approved by Legal 2026-Q2 for compliance with X.&rdquo; · &ldquo;A/B
+          experiment until 2026-09; remove after.&rdquo;
+        </p>
+      </Section>
+
+      <Section title="Searching rules">
+        <p>
+          The filter box above the rules list matches against country, category, segment, app,
+          notes, and on/off state. Useful once you have more than ~15 rules.
+        </p>
+      </Section>
+
+      <Section title="Golden tests">
+        <p>
+          The <strong>Golden tests</strong> card at the bottom evaluates your in-memory edits
+          against a list of expected fees in <code>config/service-fees.test.json</code>. Any
+          failure here will also fail CI on the PR you open.
+        </p>
+        <p>
+          A test case looks like:
+        </p>
+        <Code
+          code={`{
+  "name": "IN $4 product",
+  "transaction": { "price": 4, "country": "IN" },
+  "expectedFee": 0.88
+}`}
+        />
+        <p className="text-xs text-subtle">
+          Run them anywhere with <code>npm run test:fees</code>. If a fee should change as part of
+          your PR, update the corresponding test case in the same PR — the failing test is the
+          confirmation that the change is intentional.
+        </p>
+      </Section>
+
+      <Section title="Diff preview before saving">
+        <p>The Save dialog has three tabs:</p>
+        <ul className="list-disc space-y-0.5 pl-5 text-xs">
+          <li>
+            <strong>Semantic</strong> (default) — human-readable per-field changes:{" "}
+            <code>defaults.bands[0] feePercent 20% → 22%</code>.
+          </li>
+          <li>
+            <strong>Text diff</strong> — line-by-line +/− on the JSON. Familiar to engineers.
+          </li>
+          <li>
+            <strong>Full JSON</strong> — the entire resulting file as it will be committed.
+          </li>
+        </ul>
+      </Section>
+
+      <Section title="Multiple environments">
+        <p>
+          When <code>GITHUB_BRANCHES</code> is set to a list (e.g. <code>main,staging</code>), the
+          header shows a branch picker. Switching branches reloads the editor reading from that
+          branch — saves create PRs against the same one. Drafts are scoped per branch.
+        </p>
       </Section>
 
       <Section title="Why PRs?">

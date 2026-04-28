@@ -51,6 +51,8 @@ export function validateBands(bands: Band[], path: string): ValidationIssue[] {
 
 export function validateRule(rule: Rule, path: string): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
+  // Disabled rules are intentionally inert — skip the noise.
+  if (rule.enabled === false) return issues;
   const scopeKeys = (Object.keys(rule.scope) as (keyof typeof rule.scope)[]).filter(
     (k) => rule.scope[k] !== undefined && rule.scope[k] !== ""
   );

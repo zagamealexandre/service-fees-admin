@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { readConfigFile } from "@/lib/github";
+import { allowedBranches, baseBranch, readConfigFile } from "@/lib/github";
 import { ServiceFeeConfigSchema } from "@/lib/schema";
 import { EditorShell } from "@/components/EditorShell";
 
@@ -63,6 +63,8 @@ export default async function Home() {
         baseSha={sha}
         configHtmlUrl={htmlUrl}
         user={{ login: session.login, name: session.name, avatarUrl: session.avatarUrl }}
+        branches={allowedBranches()}
+        activeBranch={baseBranch()}
       />
     </main>
   );

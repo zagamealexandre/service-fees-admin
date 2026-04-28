@@ -6,8 +6,9 @@ import { ServiceFeeConfigSchema } from "@/lib/schema";
 import { hasBlockingErrors, validateConfig } from "@/lib/validate";
 import { Button, TextInput } from "./ui";
 import { DiffView } from "./DiffView";
+import { SemanticDiff } from "./SemanticDiff";
 
-type PreviewView = "diff" | "json";
+type PreviewView = "semantic" | "diff" | "json";
 
 export function SavePRDialog({
   before,
@@ -25,7 +26,7 @@ export function SavePRDialog({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [conflict, setConflict] = useState(false);
-  const [view, setView] = useState<PreviewView>("diff");
+  const [view, setView] = useState<PreviewView>("semantic");
 
   // Schema check (zod) + semantic checks (band overlap, country format, etc.)
   const schemaResult = useMemo(() => ServiceFeeConfigSchema.safeParse(after), [after]);
@@ -155,7 +156,7 @@ export function SavePRDialog({
             <div className="mb-2 flex items-center justify-between gap-3">
               <span className="text-sm font-medium text-ink">Preview</span>
               <div className="inline-flex rounded-md border border-line bg-slate-50 p-0.5 text-xs">
-                {(["diff", "json"] as const).map((t) => (
+                {(["semantic", "diff", "json"] as const).map((t) => (
                   <button
                     key={t}
                     type="button"
@@ -165,7 +166,7 @@ export function SavePRDialog({
                       view === t ? "bg-white text-ink shadow-sm" : "text-subtle hover:text-ink"
                     )}
                   >
-                    {t === "json" ? "Full JSON" : "Diff"}
+                    {t === "semantic" ? "Semantic" : t === "json" ? "Full JSON" : "Text diff"}
                   </button>
                 ))}
               </div>
@@ -174,6 +175,8 @@ export function SavePRDialog({
               <p className="rounded-md border border-line bg-slate-50 px-3 py-2 text-sm text-subtle">
                 No changes to commit.
               </p>
+            ) : view === "semantic" ? (
+              <SemanticDiff before={before} after={after} />
             ) : view === "diff" ? (
               <DiffView before={before} after={after} />
             ) : (
