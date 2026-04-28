@@ -55,10 +55,12 @@ export function validateRule(rule: Rule, path: string): ValidationIssue[] {
     (k) => rule.scope[k] !== undefined && rule.scope[k] !== ""
   );
   if (scopeKeys.length === 0) {
+    // No scope = intentional fallback rule. Allowed, but flagged so the user is aware
+    // it applies to every transaction.
     issues.push({
       path: `${path}.scope`,
-      level: "error",
-      message: "Rule scope must specify at least one dimension.",
+      level: "warning",
+      message: "No scope — this rule applies to everything (fallback).",
     });
   }
   if (rule.scope.country && !/^[A-Z]{2}$/.test(rule.scope.country)) {

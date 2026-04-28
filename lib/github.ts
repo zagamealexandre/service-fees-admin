@@ -132,3 +132,42 @@ export async function listOpenServiceFeePRs(token: string): Promise<
       user: p.user.login,
     }));
 }
+
+export type HistoryEntry = {
+  sha: string;
+  message: string;
+  authorName: string;
+  authorLogin: string | null;
+  authorAvatarUrl: string | null;
+  date: string;
+  htmlUrl: string;
+};
+
+export async function listFileHistory(
+  token: string,
+  perPage = 30
+): Promise<HistoryEntry[]> {
+  const { owner, repo } = repoFromEnv();
+  const res = await gh(
+    token,
+    `/repos/${owner}/${repo}/commits?path=${encodeURIComponent(CONFIG_PATH)}&sha=${encodeURIComponent(
+      baseBranch()
+    )}&per_page=${perPage}`
+  );
+  if (!res.ok) return [];
+  const data = (await res.json()) as Array<{
+    sha: string;
+    html_url: string;
+    commit: { message: string; author: { name: string; date: string } };
+    author: { login: string; avatar_url: string } | null;
+  }>;
+  return data.map((c) => ({
+    sha: c.sha,
+    message: c.commit.message.split("\n")[0],
+    authorName: c.commit.author.name,
+    authorLogin: c.author?.login ?? null,
+    authorAvatarUrl: c.author?.avatar_url ?? null,
+    date: c.commit.author.date,
+    htmlUrl: c.html_url,
+  }));
+}

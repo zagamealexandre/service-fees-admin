@@ -2,9 +2,21 @@
 import clsx from "clsx";
 import type { ReactNode, InputHTMLAttributes, ButtonHTMLAttributes } from "react";
 
-export function Card(props: { title: string; description?: string; children: ReactNode; className?: string }) {
+export function Card(props: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+  className?: string;
+  tone?: "default" | "info" | "muted";
+}) {
+  const toneClass = {
+    default: "bg-white border-line",
+    // Subtle blue tint — used for "defaults" cards so they stand out from override rules.
+    info: "bg-sky-50/60 border-sky-100",
+    muted: "bg-slate-50 border-line",
+  }[props.tone ?? "default"];
   return (
-    <section className={clsx("rounded-lg border border-line bg-white p-5", props.className)}>
+    <section className={clsx("rounded-lg border p-5", toneClass, props.className)}>
       <header className="mb-4">
         <h2 className="text-base font-semibold text-ink">{props.title}</h2>
         {props.description && <p className="mt-1 text-sm text-subtle">{props.description}</p>}

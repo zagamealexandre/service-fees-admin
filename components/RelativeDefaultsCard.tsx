@@ -22,6 +22,7 @@ export function RelativeDefaultsCard({
   }
   return (
     <Card
+      tone="info"
       title="Relative fees — defaults"
       description="Percentage of price, by price band. Used when no rule matches."
     >

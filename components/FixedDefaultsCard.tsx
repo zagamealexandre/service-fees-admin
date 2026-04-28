@@ -13,6 +13,7 @@ export function FixedDefaultsCard({
   const productFee = config.serviceFee.fixed.defaults.productFee;
   return (
     <Card
+      tone="info"
       title="Fixed fees — defaults"
       description="Flat amounts per product/country/segment. Override per scope below."
     >

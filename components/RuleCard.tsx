@@ -12,6 +12,7 @@ export function RuleCard({
   onChange,
   onRemove,
   onMove,
+  defaultOpen = false,
 }: {
   rule: Rule;
   index: number;
@@ -19,8 +20,9 @@ export function RuleCard({
   onChange: (next: Rule) => void;
   onRemove: () => void;
   onMove: (delta: -1 | 1) => void;
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="rounded-md border border-line bg-white">
       <div className="flex flex-wrap items-center gap-3 px-4 py-3">

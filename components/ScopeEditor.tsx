@@ -69,7 +69,16 @@ export function ScopeChips({ scope }: { scope: Scope }) {
   const entries = (Object.entries(scope) as [keyof Scope, string | undefined][]).filter(
     ([, v]) => v !== undefined && v !== ""
   );
-  if (entries.length === 0) return <span className="text-xs text-subtle">(no scope)</span>;
+  if (entries.length === 0) {
+    return (
+      <span
+        className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700"
+        title="No scope — this rule applies to everything"
+      >
+        Fallback (no scope)
+      </span>
+    );
+  }
   return (
     <div className="flex flex-wrap gap-1.5">
       {entries.map(([k, v]) => (
