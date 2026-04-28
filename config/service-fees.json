@@ -77,6 +77,24 @@
             ]
           }
         }
+      },
+      {
+        "scope": {
+          "country": "AF"
+        },
+        "override": {
+          "relative": {
+            "minFee": 0.99,
+            "newUserFeeEnabled": false,
+            "bands": [
+              {
+                "minPriceInclusive": 0,
+                "maxPriceExclusive": 5,
+                "feePercent": 14
+              }
+            ]
+          }
+        }
       }
     ]
   }
