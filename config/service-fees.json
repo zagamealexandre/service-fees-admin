@@ -114,6 +114,18 @@
             ]
           }
         }
+      },
+      {
+        "scope": {
+          "country": "HN",
+          "app": "web"
+        },
+        "override": {
+          "relative": {
+            "minFee": 0,
+            "newUserFeeEnabled": true
+          }
+        }
       }
     ]
   }
