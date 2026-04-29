@@ -96,6 +96,25 @@
           }
         },
         "enabled": false
+      },
+      {
+        "scope": {
+          "country": "DE",
+          "app": "android,ios"
+        },
+        "override": {
+          "relative": {
+            "minFee": 0,
+            "newUserFeeEnabled": true,
+            "bands": [
+              {
+                "minPriceInclusive": 0,
+                "maxPriceExclusive": 5,
+                "feePercent": 30
+              }
+            ]
+          }
+        }
       }
     ]
   }
