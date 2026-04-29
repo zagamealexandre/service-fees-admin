@@ -30,7 +30,15 @@ export type Transaction = {
 export type ResolvedRelative = {
   minFee: number;
   newUserFeeEnabled: boolean;
-  bands: Band[];
+  /** Bands from serviceFee.relative.defaults.bands. */
+  defaultBands: Band[];
+  /**
+   * Bands from the last matching rule's override, if any.
+   * Looked up *before* defaultBands — any price range not covered by overrideBands
+   * falls through to defaultBands. So a country override that only specifies a
+   * single 0–5 band still gets the default 5+ behavior.
+   */
+  overrideBands?: Band[];
 };
 
 export type ResolutionResult = {
@@ -89,6 +97,8 @@ function findBand(bands: Band[], price: number): Band | undefined {
 }
 
 export function resolveFee(config: ServiceFeeConfig, t: Transaction): ResolutionResult {
+  const defaultBands = config.serviceFee.relative.defaults.bands.map((b) => ({ ...b }));
+
   if (!config.serviceFee.enabled) {
     return {
       fee: 0,
@@ -96,17 +106,21 @@ export function resolveFee(config: ServiceFeeConfig, t: Transaction): Resolution
       source: "disabled",
       explanation: "Service fees are globally disabled.",
       matchedRules: [],
-      resolvedRelative: { ...config.serviceFee.relative.defaults },
+      resolvedRelative: {
+        minFee: config.serviceFee.relative.defaults.minFee,
+        newUserFeeEnabled: config.serviceFee.relative.defaults.newUserFeeEnabled,
+        defaultBands,
+      },
       resolvedFixed: { ...config.serviceFee.fixed.defaults.productFee },
     };
   }
 
   // Layer matching rules on top of defaults, top-to-bottom.
-  let resolvedRelative: ResolvedRelative = {
-    minFee: config.serviceFee.relative.defaults.minFee,
-    newUserFeeEnabled: config.serviceFee.relative.defaults.newUserFeeEnabled,
-    bands: config.serviceFee.relative.defaults.bands.map((b) => ({ ...b })),
-  };
+  // overrideBands are kept SEPARATE from defaultBands so that unstated price ranges
+  // fall through to defaults — that's what "override only the 0–5 band" should mean.
+  let minFee = config.serviceFee.relative.defaults.minFee;
+  let newUserFeeEnabled = config.serviceFee.relative.defaults.newUserFeeEnabled;
+  let overrideBands: Band[] | undefined;
   let resolvedFixed: ProductFee = JSON.parse(JSON.stringify(config.serviceFee.fixed.defaults.productFee));
   const matchedRules: number[] = [];
 
@@ -116,14 +130,21 @@ export function resolveFee(config: ServiceFeeConfig, t: Transaction): Resolution
     matchedRules.push(i);
     if (rule.override.relative) {
       const o = rule.override.relative;
-      if (o.minFee !== undefined) resolvedRelative.minFee = o.minFee;
-      if (o.newUserFeeEnabled !== undefined) resolvedRelative.newUserFeeEnabled = o.newUserFeeEnabled;
-      if (o.bands !== undefined) resolvedRelative.bands = o.bands.map((b) => ({ ...b }));
+      if (o.minFee !== undefined) minFee = o.minFee;
+      if (o.newUserFeeEnabled !== undefined) newUserFeeEnabled = o.newUserFeeEnabled;
+      if (o.bands !== undefined) overrideBands = o.bands.map((b) => ({ ...b }));
     }
     if (rule.override.fixed?.productFee) {
       resolvedFixed = mergeFixed(resolvedFixed, rule.override.fixed.productFee);
     }
   });
+
+  const resolvedRelative: ResolvedRelative = {
+    minFee,
+    newUserFeeEnabled,
+    defaultBands,
+    overrideBands,
+  };
 
   // Fixed product fee wins if there's a matching entry.
   if (t.productKey && t.country) {
@@ -164,11 +185,17 @@ export function resolveFee(config: ServiceFeeConfig, t: Transaction): Resolution
     };
   }
 
-  // Relative bands.
-  const band = findBand(resolvedRelative.bands, t.price);
+  // Relative bands. Override bands are checked first; any range they don't cover
+  // falls through to the default bands. So a country override with just one
+  // 0–5 band still gets the default behavior for prices ≥ 5.
+  const overrideHit = overrideBands ? findBand(overrideBands, t.price) : undefined;
+  const fallbackHit = overrideHit ? undefined : findBand(defaultBands, t.price);
+  const band = overrideHit ?? fallbackHit;
+  const bandSource = overrideHit ? "override" : "default";
+
   if (!band) {
     return {
-      fee: resolvedRelative.minFee,
+      fee: minFee,
       currency: "USD",
       source: "no-band",
       explanation: `No band matches price ${t.price.toFixed(2)} — falling back to minFee.`,
@@ -178,12 +205,13 @@ export function resolveFee(config: ServiceFeeConfig, t: Transaction): Resolution
     };
   }
   const raw = (t.price * band.feePercent) / 100;
-  if (raw < resolvedRelative.minFee) {
+  const fellThroughNote = bandSource === "default" && overrideBands ? " (fell through to defaults — override didn't cover this price)" : "";
+  if (raw < minFee) {
     return {
-      fee: resolvedRelative.minFee,
+      fee: minFee,
       currency: "USD",
       source: "min-floor",
-      explanation: `${band.feePercent}% of ${t.price.toFixed(2)} = ${raw.toFixed(2)} < minFee ${resolvedRelative.minFee.toFixed(2)} → floor applied.`,
+      explanation: `${band.feePercent}% of ${t.price.toFixed(2)} = ${raw.toFixed(2)} < minFee ${minFee.toFixed(2)} → floor applied${fellThroughNote}.`,
       matchedRules,
       resolvedRelative,
       resolvedFixed,
@@ -193,7 +221,7 @@ export function resolveFee(config: ServiceFeeConfig, t: Transaction): Resolution
     fee: round2(raw),
     currency: "USD",
     source: "band",
-    explanation: `${band.feePercent}% of ${t.price.toFixed(2)} = ${raw.toFixed(2)}.`,
+    explanation: `${band.feePercent}% of ${t.price.toFixed(2)} = ${raw.toFixed(2)}${fellThroughNote}.`,
     matchedRules,
     resolvedRelative,
     resolvedFixed,

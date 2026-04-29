@@ -169,6 +169,12 @@ export function DocsPanel() {
           <em>top to bottom</em>, each one overriding only the fields it specifies. So a country
           rule can change the bands while inheriting the default <code>minFee</code>.
         </p>
+        <p>
+          <strong>Bands fall through.</strong> If a rule&apos;s <code>bands</code> only covers
+          part of the price range (say 0–$5), prices outside that range use the matching{" "}
+          <em>default</em> band. To wholesale replace bands for a country, list every range you
+          want to cover.
+        </p>
         <p className="text-xs text-subtle">
           Use the ↑ ↓ arrows on each rule card to reorder when overlap matters.
         </p>
