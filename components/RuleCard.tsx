@@ -24,6 +24,7 @@ export function RuleCard({
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const [showViewer, setShowViewer] = useState(false);
   const enabled = rule.enabled !== false;
 
   return (
@@ -49,6 +50,9 @@ export function RuleCard({
           </Button>
           <Button variant="ghost" disabled={index === total - 1} onClick={() => onMove(1)} aria-label="Move down">
             ↓
+          </Button>
+          <Button variant="ghost" onClick={() => setShowViewer(true)}>
+            View
           </Button>
           <Button variant="ghost" onClick={() => setOpen((s) => !s)}>
             {open ? "Collapse" : "Edit"}
@@ -95,6 +99,64 @@ export function RuleCard({
           </div>
         </div>
       )}
+
+      {showViewer && (
+        <RuleViewerModal rule={rule} index={index} onClose={() => setShowViewer(false)} />
+      )}
+    </div>
+  );
+}
+
+function RuleViewerModal({
+  rule,
+  index,
+  onClose,
+}: {
+  rule: Rule;
+  index: number;
+  onClose: () => void;
+}) {
+  const json = JSON.stringify(rule, null, 2);
+  const [copied, setCopied] = useState(false);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-xl">
+        <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-3">
+          <div>
+            <h3 className="text-base font-semibold text-ink">Rule #{index + 1}</h3>
+            <p className="mt-0.5 text-xs text-subtle">
+              Read-only. Close this dialog and click <strong>Edit</strong> to modify.
+            </p>
+          </div>
+          <Button
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(json);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1200);
+              } catch {}
+            }}
+          >
+            {copied ? "Copied" : "Copy JSON"}
+          </Button>
+        </header>
+        <pre className="flex-1 overflow-auto bg-slate-50 px-5 py-4 text-xs leading-5 text-ink">
+          {json}
+        </pre>
+        <footer className="flex items-center justify-end gap-2 border-t border-line bg-slate-50 px-5 py-3">
+          <Button variant="primary" onClick={onClose}>
+            Close
+          </Button>
+        </footer>
+      </div>
     </div>
   );
 }
