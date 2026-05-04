@@ -126,6 +126,23 @@
             "newUserFeeEnabled": true
           }
         }
+      },
+      {
+        "scope": {
+          "country": "IN"
+        },
+        "override": {
+          "relative": {
+            "minFee": 0,
+            "bands": [
+              {
+                "minPriceInclusive": 0,
+                "maxPriceExclusive": null,
+                "feePercent": 0
+              }
+            ]
+          }
+        }
       }
     ]
   }
